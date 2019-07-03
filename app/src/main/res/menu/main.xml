@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/btnShowAll"
+        android:icon="@drawable/ic_insert_chart_black_24dp"
+        android:title="@string/menuResult"
+        app:showAsAction="ifRoom"></item>
+    <item
+        android:id="@+id/btnShowBills"
+        android:icon="@drawable/ic_build_black_24dp"
+        android:title="@string/menuSettings"
+        app:showAsAction="ifRoom"></item>
+    <item
+        android:id="@+id/btnShowCosts"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="menu3"
+        app:showAsAction="never">
+    </item>
+    <item
+        android:id="@+id/btnDateFrom"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="menu4"
+        app:showAsAction="never">
+    </item>
+</menu>

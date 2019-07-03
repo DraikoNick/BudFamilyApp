@@ -1,0 +1,284 @@
+
+        spinnerChanger(0,DBHelper.TABLE_BILLS,DBHelper.KEY_BILL_CURRENCY);
+        spinnerChanger(1,DBHelper.TABLE_EXP_CAT,DBHelper.KEY_EXP_CAT_NAME);
+        spinnerChanger(2,DBHelper.TABLE_EXP_TYPE,DBHelper.KEY_EXP_TYPE_NAME);
+    }
+
+
+
+    private void spinnerChanger(final int spinId, final String tableName, final String ColumName){
+        spinBills[spinId].setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View itemSelected, int selectedItemPosition, long selectedId) {
+                SQLiteDatabase database=dbHelper.getReadableDatabase();
+                String Select=null;
+                if(spinId==2){
+                    Integer in=(int)spinBills[1].getSelectedItemId()+1;
+                    Log.d("mLog",in.toString());
+                    Select="expcat = "+in.toString();
+                }
+                Cursor cursor=database.query(tableName,null,Select,null,null,null,null);
+                List<Integer> list = new ArrayList<Integer>();
+                if(cursor.moveToFirst()){
+                    int idIndex=cursor.getColumnIndex((ColumName)); //key_bill_currency
+                    do{
+                        list.add(cursor.getInt(idIndex));
+                    }while(cursor.moveToNext());
+                }//end if
+                cursor.close();
+                changeTextValueOfBills(list,selectedItemPosition,spinId);
+                if(spinId==1){
+                    billSpinner(DBHelper.TABLE_EXP_TYPE,DBHelper.KEY_EXP_TYPE_NAME, spinBills[2],2);
+                }
+            }//end onitemselected
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });//end spinBills id
+    }//end spinnerchanger
+
+    private void changeTextValueOfBills(List<Integer> list, int selectedItemPosition, int spinId){
+        SQLiteDatabase database=dbHelper.getReadableDatabase();
+        String[] Colum={"_id","name"};
+        String Select="_id = " + list.get(selectedItemPosition).toString();
+        Cursor cursorT=database.query(DBHelper.TABLE_CURRENCY,Colum,Select,null,null,null,"_id DESC"); //table_currency
+        if(cursorT.moveToFirst()){
+            int idIndexT=cursorT.getColumnIndex((DBHelper.KEY_CURR_ID));
+            int nameIndexT=cursorT.getColumnIndex((DBHelper.KEY_CURR_NAME));
+            do{
+                cursorT.getInt(idIndexT);
+                if((cursorT.getInt(idIndexT)==list.get(selectedItemPosition)) & spinId==1)
+                    txtCurs2.setText(cursorT.getString(nameIndexT));
+                else
+                    txtCurs1.setText(cursorT.getString(nameIndexT));
+            }while(cursorT.moveToNext());
+        }//end if
+        cursorT.close();
+        compareValuesOfBills();
+    }
+
+    private boolean compareValuesOfBills(){
+        if(txtCurs1.getText().toString().equals(txtCurs2.getText().toString())){
+            etxtCursValue.setText("1");
+            /*Toast toast = Toast.makeText(getApplicationContext(),"Валюта счета, с которого переводятся средства, " +
+                    "и валюта счета, на который переводятся деньги - совпадают.", Toast.LENGTH_SHORT);
+            toast.show();*/
+            TextView txt5=(TextView) findViewById(R.id.txt5);
+            txt5.setVisibility(View.INVISIBLE);
+            txtCurs1.setVisibility(View.INVISIBLE);
+            txtCurs2.setVisibility(View.INVISIBLE);
+            etxtCursValue.setVisibility(View.INVISIBLE);
+            return true;
+        } else{
+            etxtCursValue.setText("1");
+            /*Toast toast = Toast.makeText(getApplicationContext(),"Валюта счета, с которого переводятся средства, " +
+                    "и валюта счета, на который переводятся деньги - НЕсовпадают.", Toast.LENGTH_SHORT);
+            toast.show();*/
+            TextView txt5=(TextView) findViewById(R.id.txt5);
+            txt5.setVisibility(View.VISIBLE);
+            txtCurs1.setVisibility(View.VISIBLE);
+            txtCurs2.setVisibility(View.VISIBLE);
+            etxtCursValue.setVisibility(View.VISIBLE);
+            return false;
+        }
+    }//end compare
+
+    private boolean compareBills(){
+        if(spinBills[0].getSelectedItem().toString().equals(spinBills[1].getSelectedItem().toString())){
+            Toast toast = Toast.makeText(getApplicationContext(),"Вы пытаетесь с одного счета перебросить средства на этот же счет", Toast.LENGTH_SHORT);
+            toast.show();
+            return true;
+        } else{
+
+            return false;
+        }
+    }
+
+    public void onClick(View v) {
+        switch(v.getId()){
+            case R.id.btnYes: {
+                ClickYes();
+                break;
+            }//end R.id.btnYes
+            case R.id.btnNo: {
+                ClickNo();
+                break;
+            }//end R.id.btnNo
+            case R.id.etxtDate: {
+                showDialog(DIALOG_DATE);
+                break;
+            }//end R.id.btnNo
+        }//end switch(v.getId())
+    }//end onClick(View v)
+
+    protected Dialog onCreateDialog(int dd) {
+        if (dd == DIALOG_DATE) {
+            DatePickerDialog tpd = new DatePickerDialog(this, myCallBack, myYear+1900, myMonth, myDay);
+            return tpd;
+        }
+        return super.onCreateDialog(dd);
+    }
+
+    DatePickerDialog.OnDateSetListener myCallBack = new DatePickerDialog.OnDateSetListener() {
+        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+            myDay=dayOfMonth;
+            myMonth=monthOfYear;
+            myYear=year;
+            int m=myMonth+1;
+            int y=myYear;
+            etxtDate.setText(myDay + "." + m + "." + y);
+        }
+    };
+
+    private String dateToDBformat(Date date) {
+        String retval = "";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss"); //dlya sortirovki
+        if (date == null) {
+            return retval;
+        }
+        retval = sdf.format(date);
+        return retval;
+    }
+
+    private int returnIdOf(int spinId, String tableName, String ColumName){
+        SQLiteDatabase database=dbHelper.getReadableDatabase();
+        Cursor cursor = database.query(tableName, null, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            int idIndex = cursor.getColumnIndex(ColumName);
+            do {
+                if(cursor.getString(idIndex).equals(spinBills[spinId].getSelectedItem().toString())) {
+                    Log.d("mLog","blhjgvkhvjghvhvohuvk"+spinBills[spinId].getSelectedItem().toString());
+                    return cursor.getInt(idIndex);
+                }//end if
+            } while (cursor.moveToNext());
+        }//end if
+        return 0;
+    }
+
+    private void ClickYes(){
+        SQLiteDatabase database=dbHelper.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(DBHelper.KEY_ACT_USER, returnIdOf(0,DBHelper.TABLE_BILLS,DBHelper.KEY_BILL_OWNER));
+        Date dbDate=new Date();
+        dbDate.setYear(myYear);
+        dbDate.setMonth(myMonth);
+        dbDate.setDate(myDay);
+        contentValues.put(DBHelper.KEY_ACT_DATE, dateToDBformat(dbDate));
+        contentValues.put(DBHelper.KEY_ACT_TYPE, 2);
+        contentValues.put(DBHelper.KEY_ACT_FROM, returnIdOf(0,DBHelper.TABLE_BILLS,DBHelper.KEY_BILL_ID));
+        contentValues.put(DBHelper.KEY_ACT_TO, returnIdOf(1,DBHelper.TABLE_EXP_TYPE,DBHelper.KEY_EXP_TYPE_ID));
+        contentValues.put(DBHelper.KEY_ACT_CURR, Double.parseDouble(etxtCursValue.getText().toString()));
+        contentValues.put(DBHelper.KEY_ACT_SUM, Double.parseDouble(etxtSumm.getText().toString()));
+        //проверка есть ли деньги и разные ли счета выбраны
+        if(compareBills()){
+            contentValues.clear();
+        } else {
+            database.insert(DBHelper.TABLE_ACTIVITIES, null, contentValues);
+            contentValues.clear();
+            finish();
+        }//end if else
+        temp();
+    }//end ClickYes()
+
+    private void ClickNo(){
+        finish();
+    }//end ClickNo
+
+    public void temp(){
+        SQLiteDatabase database=dbHelper.getWritableDatabase();
+        //вывод в консоль внесенных объектов в таблицу
+        Cursor cursor = database.query(DBHelper.TABLE_ACTIVITIES, null, null, null, null, null, null);
+        if (cursor.moveToFirst()) {
+            int idIndex = cursor.getColumnIndex(DBHelper.KEY_ACT_ID);
+            int nameIndex = cursor.getColumnIndex(DBHelper.KEY_ACT_USER);
+            int dateIndex = cursor.getColumnIndex(DBHelper.KEY_ACT_DATE);
+            int typeIndex = cursor.getColumnIndex(DBHelper.KEY_ACT_TYPE);
+            int fromIndex = cursor.getColumnIndex(DBHelper.KEY_ACT_FROM);
+            int toIndex = cursor.getColumnIndex(DBHelper.KEY_ACT_TO);
+            int currIndex = cursor.getColumnIndex(DBHelper.KEY_ACT_CURR);
+            int summIndex = cursor.getColumnIndex(DBHelper.KEY_ACT_SUM);
+
+            do {
+                Log.d("mLog", " ----------"+cursor.getInt(idIndex)+" "
+                        +cursor.getInt(nameIndex)+" "
+                        +cursor.getInt(dateIndex)+" "
+                        +cursor.getInt(typeIndex)+" "
+                        +cursor.getInt(fromIndex)+" "
+                        +cursor.getInt(toIndex)+" "
+                        +cursor.getDouble(currIndex)+" "
+                        +cursor.getDouble(summIndex));
+            } while (cursor.moveToNext());
+        } else
+            Log.d("mLog","0 rows");
+        cursor.close();
+        /*
+        Cursor cursor2 = database.query(DBHelper.TABLE_EXP_TYPE, null, null, null, null, null, null);
+        if (cursor2.moveToFirst()) {
+            int idIndex = cursor2.getColumnIndex(DBHelper.KEY_EXP_TYPE_ID);
+            int nameIndex = cursor2.getColumnIndex(DBHelper.KEY_EXP_TYPE_NAME);
+            int curIndex = cursor2.getColumnIndex(DBHelper.KEY_EXP_TYPE_CURRENCY);
+            int expcatIndex = cursor2.getColumnIndex(DBHelper.KEY_EXP_TYPE_EXPCAT);
+            do {
+                Log.d("mLog", "ID = " + cursor2.getInt(idIndex) +", name = " + cursor2.getString(nameIndex)+", cur = "
+                        + cursor2.getString(curIndex)+", expcat = " + cursor2.getString(expcatIndex));
+            } while (cursor2.moveToNext());
+        } else
+            Log.d("mLog","0 rows");
+        cursor2.close();*/
+    }//end temp()    //нужно ТОЛЬКО для проверки внесенных данных в базу
+
+}
+
+
+
+
+
+
+        //получаем все когда либо поступившие средства
+        SQLiteDatabase database=dbHelper.getReadableDatabase();
+        String[] Colum0={DBHelper.KEY_ACT_TYPE,DBHelper.KEY_ACT_TO,DBHelper.KEY_ACT_CURR,DBHelper.KEY_ACT_SUM};
+        String Select=DBHelper.KEY_ACT_TYPE+" = 0";
+        Cursor cursor=database.query(DBHelper.TABLE_ACTIVITIES,Colum0,Select,null,DBHelper.KEY_ACT_TO,null,null);
+        if(cursor.moveToFirst()){
+            int toIndex=cursor.getColumnIndex(DBHelper.KEY_ACT_TO);
+            int sumIndex=cursor.getColumnIndex(DBHelper.KEY_ACT_SUM);
+            int curIndex=cursor.getColumnIndex(DBHelper.KEY_ACT_CURR);
+            do{
+                //Double summ=listOfBills.get(cursor.getInt(toIndex))+(cursor.getDouble(sumIndex)*cursor.getDouble(curIndex));
+                //listOfBills.add(cursor.getInt(toIndex),summ);
+                Double sum=cursor.getDouble(sumIndex)*cursor.getDouble(curIndex);
+                Log.d("mLog",toIndex+"="+(Double)sum);
+                listOfBills.add(toIndex,new Double(sum));
+            }while(cursor.moveToNext());
+        }//end if
+        //получаем все переводы средств
+        String[] Colum1={DBHelper.KEY_ACT_TYPE,DBHelper.KEY_ACT_FROM,DBHelper.KEY_ACT_TO,DBHelper.KEY_ACT_CURR,DBHelper.KEY_ACT_SUM};
+        Select=DBHelper.KEY_ACT_TYPE+" = 1";
+        cursor=database.query(DBHelper.TABLE_ACTIVITIES,Colum1,Select,null,DBHelper.KEY_ACT_TO,null,null);
+        if(cursor.moveToFirst()){
+            int fromIndex=cursor.getColumnIndex(DBHelper.KEY_ACT_FROM);
+            int toIndex=cursor.getColumnIndex(DBHelper.KEY_ACT_TO);
+            int sumIndex=cursor.getColumnIndex(DBHelper.KEY_ACT_SUM);
+            int curIndex=cursor.getColumnIndex(DBHelper.KEY_ACT_CURR);
+            do{
+                Double devine=cursor.getDouble(sumIndex)*cursor.getDouble(curIndex);
+                Double summ=devine+listOfBills.get(cursor.getInt(toIndex));
+                listOfBills.add(cursor.getInt(toIndex),summ);       //куда поступили средства
+                summ=listOfBills.get(cursor.getInt(fromIndex))-devine;
+                listOfBills.add(cursor.getInt(fromIndex),summ);     //откуда ушли они
+            }while(cursor.moveToNext());
+        }//end if
+        //получаем все потраченые средства
+        String[] Colum2={DBHelper.KEY_ACT_TYPE,DBHelper.KEY_ACT_FROM,DBHelper.KEY_ACT_SUM};
+        Select=DBHelper.KEY_ACT_TYPE+" = 2";
+        cursor=database.query(DBHelper.TABLE_ACTIVITIES,Colum2,Select,null,DBHelper.KEY_ACT_TO,null,null);
+        if(cursor.moveToFirst()){
+            int fromIndex=cursor.getColumnIndex(DBHelper.KEY_ACT_FROM);
+            int sumIndex=cursor.getColumnIndex(DBHelper.KEY_ACT_SUM);
+            do{
+                Double summ=listOfBills.get(cursor.getInt(fromIndex))-cursor.getDouble(sumIndex);
+                listOfBills.add(cursor.getInt(fromIndex),summ);     //откуда ушли они
+            }while(cursor.moveToNext());
+        }//end if
+        cursor.close();
+        for(int i=0; i<listOfBills.size();i++){
+            Log.d("mLog",listOfBills.get(i).toString());
+        }

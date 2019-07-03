@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/btnShowAll"
+        android:icon="@drawable/ic_format_align_justify_black_24dp"
+        android:title="Показать все транзакции"
+        app:showAsAction="always"></item>
+    <item
+        android:id="@+id/btnShowBills"
+        android:icon="@android:drawable/arrow_down_float"
+        android:title="Показать только Поступления"
+        app:showAsAction="always"></item>
+    <item
+        android:id="@+id/btnShowCosts"
+        android:icon="@android:drawable/arrow_up_float"
+        android:title="Показать только Расходы"
+        app:showAsAction="always"></item>
+    <item
+        android:id="@+id/btnDateFrom"
+        android:icon="@drawable/ic_skip_previous_black_24dp"
+        android:title="Показать начиная с даты"
+        app:showAsAction="ifRoom"></item>
+    <item
+        android:id="@+id/btnDateTo"
+        android:icon="@drawable/ic_skip_next_black_24dp"
+        android:title="Показать заканчивая датой"
+        app:showAsAction="ifRoom"></item>
+</menu>
